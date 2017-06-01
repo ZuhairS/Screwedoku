@@ -1,16 +1,14 @@
 require_relative "board"
 require 'colorize'
 
-puts "Only contractors write code this bad.".yellow
-
 class SudokuGame
   def self.from_file(filename)
-    board = self.from_file(filename)
+    board = Board.from_file(filename)
     self.new(board)
   end
 
   def initialize(board)
-    @board = [[]]
+    @board = board
   end
 
   def method_missing(method_name, *args)
@@ -22,6 +20,14 @@ class SudokuGame
     end
   end
 
+  def parse_pos(string)
+    string.split(",").map! { |char| Integer(char) }
+  end
+
+  def parse_val(string)
+    Integer(string)
+  end
+
   def get_pos
     pos = nil
     until pos && valid_pos?(pos)
@@ -29,9 +35,9 @@ class SudokuGame
       print "> "
 
       begin
-        pos = parse_pos(gets)
+        pos = parse_pos(gets.chomp)
       rescue
-        TODO: Google how to print the error that happened inside of a rescue statement.
+        puts $!.message
         puts "Invalid position entered (did you use a comma?)"
         puts ""
 
@@ -46,7 +52,7 @@ class SudokuGame
     until val && valid_val?(val)
       puts "Please enter a value between 1 and 9 (0 to clear the tile)"
       print "> "
-      val = parse_val(gets)
+      val = parse_val(gets.chomp)
     end
     val
   end
@@ -55,7 +61,7 @@ class SudokuGame
     board.render
     pos = get_pos
     val = get_val
-    board[*pos] = val
+    board[pos] = val
   end
 
   def run
@@ -65,21 +71,21 @@ class SudokuGame
   end
 
   def solved?
-    self.solved?
+    board.solved?
   end
 
   def valid_pos?(pos)
-    if pos.is_a?(:Array) &&
-      pos.length = 2 &&
-      pos.all? { |x| x.in?(0, board.size - 1) }
+    if pos.is_a?(Array) &&
+      pos.length == 2 &&
+      pos.all? { |x| x.between?(0, board.size - 1) }
       return true
     else
       get_pos
+    end
   end
 
   def valid_val?(val)
-    val.is_a?(Integer) ||
-      val.between?(0, 9)
+    val.is_a?(Integer) && val.between?(0, 9)
   end
 
   private
@@ -88,3 +94,4 @@ end
 
 
 game = SudokuGame.from_file("puzzles/sudoku1.txt")
+game.run
